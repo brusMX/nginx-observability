@@ -24,7 +24,7 @@ All these metrics are obtained per pod, this means that tagging is an essential 
 - AKS cluster
 - Kubectl binary connected to your cluster
 
-To test out the functionality of stub_status of nginx, feel free to deploy the added artifacts following the next commands:
+To test out the functionality of `stub_status` of Nginx, feel free to deploy the added artifacts following the next commands:
 
 1. Create a configmap with the needed nginx configuration.
 
@@ -37,7 +37,7 @@ To test out the functionality of stub_status of nginx, feel free to deploy the a
     ```bash
     kubectl create -f artifacts/nginxi-monitor.yaml
     ```
-1. Wait until the service is up and running and the following command returns an actual external IP:
+1. You will be able to ping the actual webserver through the external IP. This will take a few minutes:
 
     ```bash
     kubectl get svc -l name=nginx-monitor
@@ -46,7 +46,14 @@ To test out the functionality of stub_status of nginx, feel free to deploy the a
     nginx-monitor   LoadBalancer   10.0.0.217   104.211.31.99   80:30112/TCP   7m
     ```
 
-1. That's it, now proceed to the new ip, followed by the route where we are posting the metrics `/nginx_status` and you will see the metrics:
+1. The `/stub_status` endpoint is not exposed, but we can forward the port to our localhost from one of the pods:
+
+
+    ```bash
+    export SERVER_POD=$(k get pods -l app=nginx-monitor -o jsonpath="{.items[0].metadata.name}")
+    kubectl port-forward $SERVER_POD 8080:8080
+    ```
+1. That's it, now proceed on your browser to <http://127.0.0.1:8080/stub_status> to see the metrics:
 
     ```text
     Active connections: 3
@@ -58,7 +65,7 @@ To test out the functionality of stub_status of nginx, feel free to deploy the a
 ## Activate metrics on a pre-provisioned Nginx server
 
 First, let's remember that by default `stub_status` is 
-Let's start by provisioning an Nginx server and then we will update it's nginx configuration to expose the needed metrics on the route /nginx_status.
+Let's start by provisioning an Nginx server and then we will update it's nginx configuration to expose the needed metrics on the route /stub_status.
 
 ### Provision an out-of-the-box Nginx server
 
@@ -96,10 +103,12 @@ Let's start by provisioning an Nginx server and then we will update it's nginx c
 3. Add the configmap volume to the yaml file.
 
    ```yml
+
+    ...
         volumeMounts:
         - name: "config"
-          mountPath: "/etc/nginx/conf.d/default.conf"
-          subPath: default.conf
+          mountPath: "/etc/nginx/conf.d/monitor.conf"
+          subPath: monitor.conf
       volumes:
         - name: "config"
           configMap:
@@ -166,7 +175,7 @@ Let's start by provisioning an Nginx server and then we will update it's nginx c
     kubectl apply -f pre-server.yaml
     ```
 
-5. On your browser go to the external ip followed by the `/nginx_status` route
+5. Obtain one of the pods name that has been updated and on your browser go to <http://127.0.0.1:8080/stub_status>  to see the metrics.
 
 ## Sources
 
