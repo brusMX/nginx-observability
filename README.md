@@ -24,14 +24,33 @@ All these metrics are obtained per pod, this means that tagging is an essential 
 - AKS cluster
 - Kubectl binary connected to your cluster
 
-1. Enable `stub_status`, easies way to do this is to create a configmap with the needed nginx configuration.
+1. Start by creating an NGINX instance:
+
+    ```bash
+    kubectl run server --image=nginx
+    ```
+
+1. Expose it to the internet:
+
+    ```bash
+    kubectl expose deployment server --type=LoadBalancer --port=80
+    ```
+
+1. Wait for the external IP of the LoadBalancer to come back, and confirm that your server is up and running by going to that IP from your browser:
+
+    ```bash
+    kubectl get svc
+    ```
+
+1. Create a configmap with the needed nginx configuration.
 
     ```bash
     kubectl create configmap nginxconfig --from-file artifacts/nginx.conf
     ```
-2. 
+2. Check the status going to the IP plus the route /nginx_status
 
 
 ## Sources
 
-- https://sysdig.com/blog/monitor-nginx-kubernetes/
+- [<https://sysdig.com/blog/monitor-nginx-kubernetes/>]
+- [<https://www.datadoghq.com/blog/how-to-collect-nginx-metrics/]>
