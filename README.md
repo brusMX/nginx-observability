@@ -273,3 +273,4 @@ The second part that we need to understand is where are the logs located on the 
 - [Datadog monitoring Nginx on k8s](https://www.datadoghq.com/blog/how-to-collect-nginx-metrics/)
 - [How to monitor NGINX](https://github.com/DataDog/the-monitor/blob/master/nginx/how_to_monitor_nginx.md)
 - [StackOverflow: Analize nginx logs](https://stackoverflow.com/questions/12589003/simple-nginx-log-file-analyzer)
+- <https://danielfm.me/posts/painless-nginx-ingress.html>
