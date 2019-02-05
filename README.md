@@ -50,10 +50,7 @@ Now, because this is happening in a kubernetes cluster these changes would not p
 
 ### Deploying nginx with metrics enabled
 
-- AKS cluster
-- Kubectl binary connected to your cluster
-
-To test out the functionality of `stub_status` of Nginx, feel free to deploy the added artifacts following the next commands:
+To test out the functionality of `stub_status` of Nginx, feel free to deploy the added `/artifacts` following these  commands:
 
 1. Create a configmap with the needed nginx configuration.
 
@@ -75,14 +72,14 @@ To test out the functionality of `stub_status` of Nginx, feel free to deploy the
     nginx-monitor   LoadBalancer   10.0.0.217   104.211.31.99   80:30112/TCP   7m
     ```
 
-4. The `/stub_status` endpoint is not exposed, but we can forward the port to our localhost from one of the pods:
+4. The `/nginx_status` endpoint is exposed, but we can forward the port to our localhost from one of the pods:
 
 
     ```bash
     export SERVER_POD=$(k get pods -l app=nginx-monitor -o jsonpath="{.items[0].metadata.name}")
     kubectl port-forward $SERVER_POD 8080:8080
     ```
-5. That's it, now proceed on your browser to <http://127.0.0.1:8080/stub_status> to see the metrics:
+5. That's it, now proceed on your browser to <http://127.0.0.1/nginx_status> to see the metrics:
 
     ```text
     Active connections: 3
