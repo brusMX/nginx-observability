@@ -8,38 +8,11 @@ Simply enough, the installation consists on creating a new namespace, create the
 
 This fluentbit installation will by default output all kubernetes logging to elastic search.
 
-### Non-production installation of ELK in AKS
-
-If looking for a production installation of ELK, refer to [Azure/helm-elasticstack](https://github.com/Azure/helm-elasticstack).
-
-1. Intall ElasticSearch
-
-    ```bash
-    helm install stable/elasticsearch \
-    --name elasticsearch \
-    --namespace logging
-    --set data.persistence.storageClass=managed-premium,data.storage=20Gi
-    ```
-
-    This chart will create an elasticsearch service reachable inside of the cluster in the following URL:
-
-    ```property
-    elasticsearch-client.logging.svc
-    ```
-
-2. Install kibana. Use environment variables to select your installed elasticsearch service.
-
-    ```bash
-    helm install stable/kibana \
-    --name kibana \
-    --set env.ELASTICSEARCH_URL=http://elasticsearch-client.logging.svc:9200 \
-    --namespace logging
-    ```
 
 
 ### Steps for installation
 
-This steps will get fluentbit injecting logs into Elasticsearch.
+This steps will get fluentbit injecting logs into Elasticsearch. Make sure you have followed the steps to [deploy Elasticsearch and kibana on AKS](../elastic)
 
 1. Create ns, sa, and, roles:
 
