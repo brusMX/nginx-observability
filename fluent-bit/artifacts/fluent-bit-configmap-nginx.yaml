@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: kube-system
+  labels:
+    k8s-app: fluent-bit
+data:
+  # Configuration files: server, input, filters and output
+  # ======================================================
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info  
+        Daemon        Off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2007
+    @INCLUDE input-nginx.conf
+    @INCLUDE filter-docker.conf
+    @INCLUDE filter-nginx.conf
+    @INCLUDE output-azure-monitor.conf
+    #Include stdout for debugging
+    @INCLUDE output-stdout.conf
+
+  input-nginx.conf: |
+    [INPUT]
+        Name              tail
+        Tag               nginx.*
+        Path              /var/log/containers/*nginx*controller*.log
+        DB                /var/log/flb_kube_nginx.db
+        Mem_Buf_Limit     4MB
+        Refresh_Interval  10 
+
+  filter-docker.conf: |
+    [FILTER]
+        Name                parser
+        Match               nginx.*.log
+        Key_Name            log
+        Parser              docker
+
+  filter-nginx.conf: |
+    [FILTER]
+        Name                parser
+        Match               nginx.*.log
+        Key_Name            log
+        Parser              nginx
+
+  filter-json.conf: |
+    [FILTER]
+        Name                parser
+        Match               nginx.*.log
+        Key_Name            log
+        Parser              json
+
+  output-elasticsearch.conf: |
+    [OUTPUT]
+        Name            es
+        Match           *
+        Host            ${FLUENT_ELASTICSEARCH_HOST}
+        Port            ${FLUENT_ELASTICSEARCH_PORT}
+        Logstash_Format On
+        Retry_Limit     False
+
+  output-azure-monitor.conf: |
+    [OUTPUT]
+        Name azure
+        Match       *
+        Customer_ID ffd6c6fa-5fd7-4d25-82ed-31195e14c565
+        Shared_Key  SEKIRCKdIm4OzlsHMwluJ9S0+czs13jhEgeNk0nhrUmFpBPNw4FmjxmOVZYrBlD6EzXcnTIX7IO1Q7LRAnrVvQ==
+
+  output-stdout.conf: |
+    [OUTPUT]
+        Name stdout
+        Match *
+# Nginx.conf in the ingress controller has the following fromat:
+# log_format upstreaminfo '$the_real_ip - [$the_real_ip] - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_length $request_time [$proxy_upstream_name] $upstream_addr $upstream_response_length $upstream_response_time $upstream_status $req_id';
+  parsers.conf: |
+
+    [PARSER]
+        Name         docker
+        Format       json
+        Time_Key     time
+        Time_Format  %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep    On
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As   escaped       log
+
+    [PARSER]
+        Name        nginx
+        Format      regex
+        Regex       ^(?<originip>[^ ]*) - \[(?<roriginip>[^ ]*)\] - (?<remoteuser>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)") (?<requestlenght>[^ ]*) (?<requesttime>[^ ]*) \[(?<proxy>[^ ]*)\] (?<upstreamaddress>[^ ]*):*(?<upstreamport>[^ ]*) (?<upstreamresponselength>[^ ]*) (?<upstreamresponsetime>[^ ]*) (?<upstreamstatus>[^ ]*) (?<requestid>[^ ]*)$
+        Time_Key    time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
