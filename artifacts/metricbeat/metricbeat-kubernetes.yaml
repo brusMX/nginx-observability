@@ -13,14 +13,6 @@ data:
       path: ${path.config}/modules.d/*.yml
       # Reload module configs as they change:
       reload.enabled: false
-
-    # To enable hints based autodiscover uncomment this:
-    #metricbeat.autodiscover:
-    #  providers:
-    #    - type: kubernetes
-    #      host: ${NODE_NAME}
-    #      hints.enabled: true
-
     processors:
       - add_cloud_metadata:
 
@@ -40,41 +32,12 @@ metadata:
   labels:
     k8s-app: metricbeat
 data:
-  system.yml: |-
-    - module: system
-      period: 10s
-      metricsets:
-        - cpu
-        - load
-        - memory
-        - network
-        - process
-        - process_summary
-        #- core
-        #- diskio
-        #- socket
-      processes: ['.*']
-      process.include_top_n:
-        by_cpu: 5      # include top 5 processes by CPU
-        by_memory: 5   # include top 5 processes by memory
-
-    - module: system
-      period: 1m
-      metricsets:
-        - filesystem
-        - fsstat
-      processors:
-      - drop_event.when.regexp:
-          system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib)($|/)'
   nginx.yml: |-
     - module: nginx
       metricsets: ["stubstatus"]
       enabled: true
       period: 10s
-      hosts: 
-        - "http://10.244.0.5:18080"
-        - "http://120.244.0.46:18080"
-        - "http://120.244.0.48:18080"
+      hosts: ["http://10.244.0.5:18080","http://120.244.0.46:18080","http://120.244.0.48:18080"]
       server_status_path: "nginx_status"
 ---
 # Deploy a Metricbeat instance per node for node metrics retrieval

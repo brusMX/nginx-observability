@@ -138,5 +138,6 @@ By default you will see the metrics under the name `fluentbit_CL`. Now lets play
 
 
 4. Requests per second
+5. 
 
 
